@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, BarChart3, Star, CheckCircle2, AlertTriangle, XCircle, Eye, TrendingUp, TrendingDown } from 'lucide-react';
+import { ArrowLeft, BarChart3, Star, CheckCircle2, AlertTriangle, XCircle, Eye, ArrowUpRight, TrendingUp, TrendingDown } from 'lucide-react';
 import { clusters } from '../data/mockData';
 import { useApp } from '../context/AppContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';

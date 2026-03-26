@@ -1,4 +1,4 @@
-import { ArrowLeft, BarChart3, TrendingUp, TrendingDown, Plus, Minus, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, BarChart3, TrendingUp, Plus, Minus, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { scoreHistory } from '../data/mockData';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 

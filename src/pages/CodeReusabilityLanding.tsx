@@ -1,4 +1,4 @@
-import { ArrowUpRight, Download, RefreshCw, Plus, TrendingUp, AlertTriangle, Lightbulb, CheckCircle2, ExternalLink, FileText, BarChart3, Eye, RotateCcw } from 'lucide-react';
+import { ArrowUpRight, Download, RefreshCw, Plus, AlertTriangle, Lightbulb, CheckCircle2, ExternalLink, FileText, BarChart3, Eye, RotateCcw } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { scanReports } from '../data/mockData';
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, GitCompare, Share2, RotateCcw, ArrowLeft, Search, TrendingUp, BarChart3 } from 'lucide-react';
+import { Download, GitCompare, Share2, ArrowLeft, Search, TrendingUp, BarChart3 } from 'lucide-react';
 import { clusters, scanReports, scoreHistory, surfaceDistribution, clusterTypeDistribution } from '../data/mockData';
 import { useApp } from '../context/AppContext';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';

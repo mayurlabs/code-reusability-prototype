@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BarChart3, ArrowRight, RefreshCw, Layers, GitBranch, Cpu, ExternalLink } from 'lucide-react';
+import { ArrowRight, RefreshCw, Layers, GitBranch, Cpu } from 'lucide-react';
 import { modernisationCandidates } from '../data/mockData';
 import { useApp } from '../context/AppContext';
 
