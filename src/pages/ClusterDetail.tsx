@@ -268,16 +268,40 @@ export default function ClusterDetail({ clusterId, onBack }: Props) {
           )}
 
           {/* Dynamic Side-by-Side Code Comparison */}
-          {selectedMembers.length >= 2 && (
+          {selectedMembers.length >= 2 && (() => {
+            const maxLines = Math.max(...selectedMembers.map(m => m.codeLines!.length));
+            const lineAnalysis = Array.from({ length: maxLines }).map((_, lineIdx) => {
+              const lineCodes = selectedMembers.map(m => m.codeLines![lineIdx]);
+              const presentTexts = lineCodes.filter(Boolean).map(l => l.text.trim());
+              const allIdentical = presentTexts.length > 1 && presentTexts.every(t => t === presentTexts[0]);
+              const presentCount = lineCodes.filter(Boolean).length;
+              return { lineCodes, allIdentical, presentCount };
+            });
+            const identicalCount = lineAnalysis.filter(l => l.allIdentical).length;
+            const differentCount = lineAnalysis.filter(l => !l.allIdentical && l.presentCount > 1).length;
+            const uniqueCount = lineAnalysis.filter(l => l.presentCount === 1 || (!l.allIdentical && l.lineCodes.some(c => !c))).length;
+
+            return (
             <div className="sf-card" style={{ marginTop: 16, overflow: 'hidden' }}>
-              <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e5e5', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fafbfc' }}>
-                <h4 className="sf-section-title" style={{ margin: 0 }}>
-                  Code Comparison — {selectedMembers.length} Implementations
-                </h4>
-                <div style={{ display: 'flex', gap: 16, fontSize: 11, fontWeight: 600, color: '#706e6b' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: 2, background: '#fef4e8', border: '1px solid #f5d9a8' }} /> Different</span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: 2, background: '#e1f0ff', border: '1px solid #b3d7f5' }} /> Unique</span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: 2, background: 'white', border: '1px solid #e5e5e5' }} /> Identical</span>
+              <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e5e5', background: '#fafbfc' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h4 className="sf-section-title" style={{ margin: 0 }}>
+                    Code Comparison — {selectedMembers.length} Implementations
+                  </h4>
+                  <div style={{ display: 'flex', gap: 20, fontSize: 12, fontWeight: 600 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 18, height: 18, borderRadius: 3, background: '#dcf5e7', border: '2px solid #2e844a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#2e844a', fontWeight: 800 }}>=</span>
+                      <span style={{ color: '#2e844a' }}>Identical ({identicalCount})</span>
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 18, height: 18, borderRadius: 3, background: '#fff3cd', border: '2px solid #d4890a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#d4890a', fontWeight: 800 }}>≠</span>
+                      <span style={{ color: '#b86e00' }}>Different ({differentCount})</span>
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 18, height: 18, borderRadius: 3, background: '#fde8ea', border: '2px solid #ea001e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#ea001e', fontWeight: 800 }}>+</span>
+                      <span style={{ color: '#ea001e' }}>Unique ({uniqueCount})</span>
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -312,62 +336,109 @@ export default function ClusterDetail({ clusterId, onBack }: Props) {
 
               {/* Code Lines */}
               <div style={{ overflowX: 'auto' }}>
-                {(() => {
-                  const maxLines = Math.max(...selectedMembers.map(m => m.codeLines!.length));
-                  return Array.from({ length: maxLines }).map((_, lineIdx) => {
-                    const lineCodes = selectedMembers.map(m => m.codeLines![lineIdx]);
-                    const allTexts = lineCodes.filter(Boolean).map(l => l.text);
-                    const allSame = allTexts.length > 1 && allTexts.every(t => t === allTexts[0]);
+                {lineAnalysis.map((analysis, lineIdx) => {
+                  const { lineCodes, allIdentical } = analysis;
 
-                    return (
-                      <div key={lineIdx} style={{
-                        display: 'grid',
-                        gridTemplateColumns: `repeat(${selectedMembers.length}, 1fr)`,
-                        borderBottom: '1px solid #f0f0f0',
-                      }}>
-                        {selectedMembers.map((m, colIdx) => {
-                          const line = m.codeLines![lineIdx];
-                          const otherTexts = lineCodes.filter((l, i) => l && i !== colIdx).map(l => l.text);
-                          const isDifferent = line && otherTexts.length > 0 && !otherTexts.includes(line.text);
-                          const isUnique = line && (line.matchType === 'unique' || (otherTexts.length > 0 && otherTexts.every(t => t !== line.text) && !allSame));
+                  return (
+                    <div key={lineIdx} style={{
+                      display: 'grid',
+                      gridTemplateColumns: `repeat(${selectedMembers.length}, 1fr)`,
+                      borderBottom: allIdentical ? '1px solid #f0f0f0' : '1px solid #e0d0b8',
+                    }}>
+                      {selectedMembers.map((m, colIdx) => {
+                        const line = lineCodes[colIdx];
+                        const hasLine = !!line;
+                        const otherTexts = lineCodes.filter((l, i) => l && i !== colIdx).map(l => l.text.trim());
+                        const matchesAny = hasLine && otherTexts.includes(line.text.trim());
+                        const isOnlyHere = hasLine && otherTexts.length > 0 && !matchesAny && !allIdentical;
+                        const noLineButOthersHave = !hasLine && lineCodes.some(Boolean);
 
-                          return (
-                            <div key={m.id} style={{
-                              display: 'flex',
-                              fontFamily: "'Courier New', Consolas, monospace",
+                        let bg = 'transparent';
+                        let leftBorder = '4px solid transparent';
+                        let gutterSymbol = '';
+                        let gutterColor = '#c9c7c5';
+
+                        if (!hasLine && noLineButOthersHave) {
+                          bg = '#f5f5f5';
+                          leftBorder = '4px solid #e0e0e0';
+                          gutterSymbol = '—';
+                          gutterColor = '#d0d0d0';
+                        } else if (allIdentical) {
+                          bg = '#f4fbf6';
+                          leftBorder = '4px solid #48bb78';
+                          gutterSymbol = '=';
+                          gutterColor = '#48bb78';
+                        } else if (isOnlyHere) {
+                          bg = '#fef0f1';
+                          leftBorder = '4px solid #ea001e';
+                          gutterSymbol = '+';
+                          gutterColor = '#ea001e';
+                        } else if (hasLine && !allIdentical) {
+                          bg = '#fffbeb';
+                          leftBorder = '4px solid #d69e2e';
+                          gutterSymbol = '≠';
+                          gutterColor = '#d69e2e';
+                        }
+
+                        return (
+                          <div key={m.id} style={{
+                            display: 'flex',
+                            fontFamily: "'Courier New', Consolas, monospace",
+                            fontSize: 11,
+                            lineHeight: '24px',
+                            borderRight: colIdx < selectedMembers.length - 1 ? '1px solid #e5e5e5' : 'none',
+                            background: bg,
+                            borderLeft: leftBorder,
+                            minHeight: 24,
+                          }}>
+                            {/* Gutter symbol */}
+                            <span style={{
+                              width: 20,
+                              textAlign: 'center',
                               fontSize: 11,
-                              lineHeight: '22px',
-                              borderRight: colIdx < selectedMembers.length - 1 ? '1px solid #eee' : 'none',
-                              background: !line ? '#f8f8f8' :
-                                allSame ? 'transparent' :
-                                isUnique ? '#e8f2ff' :
-                                isDifferent ? '#fef6ed' :
-                                'transparent',
-                              borderLeft: !line ? '3px solid transparent' :
-                                allSame ? '3px solid transparent' :
-                                isUnique ? '3px solid #569cd6' :
-                                isDifferent ? '3px solid #d4a054' :
-                                '3px solid transparent',
-                              minHeight: 22,
+                              fontWeight: 800,
+                              color: gutterColor,
+                              flexShrink: 0,
+                              userSelect: 'none',
+                              lineHeight: '24px',
                             }}>
-                              {line ? (
-                                <>
-                                  <span style={{ width: 32, textAlign: 'right', paddingRight: 8, color: '#b0b0b0', flexShrink: 0, userSelect: 'none', fontSize: 10 }}>{line.lineNum}</span>
-                                  <span style={{ color: '#333', whiteSpace: 'pre', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }}>{line.text}</span>
-                                </>
-                              ) : (
-                                <span style={{ width: '100%' }}>&nbsp;</span>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  });
-                })()}
+                              {gutterSymbol}
+                            </span>
+                            {/* Line number */}
+                            <span style={{
+                              width: 26,
+                              textAlign: 'right',
+                              paddingRight: 8,
+                              color: allIdentical ? '#8fbc8f' : hasLine && !allIdentical ? (isOnlyHere ? '#ea001e' : '#d69e2e') : '#d0d0d0',
+                              flexShrink: 0,
+                              userSelect: 'none',
+                              fontSize: 10,
+                              fontWeight: 600,
+                            }}>
+                              {hasLine ? line.lineNum : ''}
+                            </span>
+                            {/* Code text */}
+                            <span style={{
+                              color: allIdentical ? '#555' : (isOnlyHere ? '#b80000' : (hasLine ? '#7a5a00' : '#ccc')),
+                              fontWeight: allIdentical ? 400 : 500,
+                              whiteSpace: 'pre',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              flex: 1,
+                              paddingRight: 8,
+                            }}>
+                              {hasLine ? line.text : ''}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
               </div>
             </div>
-          )}
+          );
+          })()}
 
           {/* Empty state when < 2 selected */}
           {selectedMembers.length < 2 && selectedForCompare.size > 0 && (
