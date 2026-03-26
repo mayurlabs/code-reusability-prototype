@@ -13,6 +13,28 @@ export default function ClusterDetail({ clusterId, onBack }: Props) {
   const { showToast } = useApp();
   const cluster = clusters.find(c => c.id === clusterId) || clusters[0];
   const [activeTab, setActiveTab] = useState('overview');
+  const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
+  const [compareLeft, setCompareLeft] = useState<string | null>(null);
+  const [compareRight, setCompareRight] = useState<string | null>(null);
+
+  const toggleMemberExpand = (memberId: string) => {
+    setExpandedMembers(prev => {
+      const next = new Set(prev);
+      if (next.has(memberId)) next.delete(memberId);
+      else next.add(memberId);
+      return next;
+    });
+  };
+
+  const matchTypeColor = (type: string) => {
+    switch (type) {
+      case 'identical': return { bg: 'transparent', border: 'transparent', label: '' };
+      case 'similar': return { bg: '#e6f7ec', border: '#b8e6c8', label: 'Similar' };
+      case 'different': return { bg: '#fef4e8', border: '#f5d9a8', label: 'Different' };
+      case 'unique': return { bg: '#e1f0ff', border: '#b3d7f5', label: 'Unique' };
+      default: return { bg: 'transparent', border: 'transparent', label: '' };
+    }
+  };
 
   const tabs = [
     { id: 'overview', label: 'Overview' },
@@ -195,12 +217,27 @@ export default function ClusterDetail({ clusterId, onBack }: Props) {
               </ul>
             </div>
           </div>
+
+          {/* Code Legend */}
+          <div style={{ display: 'flex', gap: 16, marginBottom: 12, fontSize: 11, fontWeight: 600, color: '#706e6b' }}>
+            <span>LINE HIGHLIGHTING:</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 12, height: 12, borderRadius: 2, background: '#e6f7ec', border: '1px solid #b8e6c8' }} /> Similar logic</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 12, height: 12, borderRadius: 2, background: '#fef4e8', border: '1px solid #f5d9a8' }} /> Different logic</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 12, height: 12, borderRadius: 2, background: '#e1f0ff', border: '1px solid #b3d7f5' }} /> Unique to this implementation</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 12, height: 12, borderRadius: 2, background: 'transparent', border: '1px solid #e5e5e5' }} /> Identical</span>
+          </div>
+
+          {/* Implementation Comparison Table with Expandable Code */}
           {cluster.members.length > 0 && (
-            <div className="sf-card" style={{ padding: 20 }}>
-              <h4 className="sf-section-title">Implementation Comparison</h4>
-              <table className="sf-table">
+            <div className="sf-card" style={{ overflow: 'hidden' }}>
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e5e5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h4 className="sf-section-title" style={{ margin: 0 }}>Implementation Comparison</h4>
+                <span style={{ fontSize: 11, color: '#706e6b' }}>Click any implementation to inspect code</span>
+              </div>
+              <table className="sf-table" style={{ marginBottom: 0 }}>
                 <thead>
                   <tr>
+                    <th style={{ width: 28 }}></th>
                     <th>Implementation</th>
                     <th>Surface</th>
                     <th>LOC</th>
@@ -213,22 +250,194 @@ export default function ClusterDetail({ clusterId, onBack }: Props) {
                 <tbody>
                   {cluster.members.map(m => {
                     const bc = badgeColor(m.badge);
+                    const isExpanded = expandedMembers.has(m.id);
+                    const hasCode = m.codeLines && m.codeLines.length > 0;
                     return (
-                      <tr key={m.id} style={{ cursor: 'default' }}>
-                        <td style={{ fontFamily: 'monospace', fontSize: 12, color: '#0176d3' }}>{m.name.split('(')[0]}()</td>
-                        <td>{m.surface}</td>
-                        <td>{m.loc}</td>
-                        <td style={{ fontFamily: 'monospace' }}>{m.similarity}%</td>
-                        <td style={{ color: m.usageState === 'Active' ? '#2e844a' : m.usageState === 'Low Value' ? '#ea001e' : '#444', fontWeight: 600 }}>{m.usageState}</td>
-                        <td style={{ fontSize: 12 }}>{m.badge === 'Preferred Candidate' ? 'Low fan-out' : m.badge === 'Retire Variant' ? 'High fan-out' : 'Medium fan-out'}</td>
-                        <td><span style={{ padding: '2px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600, background: bc.bg, color: bc.color }}>{m.badge}</span></td>
-                      </tr>
+                      <>
+                        <tr key={m.id} onClick={() => hasCode && toggleMemberExpand(m.id)} style={{ cursor: hasCode ? 'pointer' : 'default' }}>
+                          <td style={{ textAlign: 'center', fontSize: 12, color: '#706e6b' }}>
+                            {hasCode && (isExpanded ? '▼' : '▶')}
+                          </td>
+                          <td style={{ fontFamily: 'monospace', fontSize: 12, color: '#0176d3' }}>{m.name.split('(')[0]}()</td>
+                          <td>{m.surface}</td>
+                          <td>{m.loc}</td>
+                          <td style={{ fontFamily: 'monospace' }}>{m.similarity}%</td>
+                          <td style={{ color: m.usageState === 'Active' ? '#2e844a' : m.usageState === 'Low Value' ? '#ea001e' : '#444', fontWeight: 600 }}>{m.usageState}</td>
+                          <td style={{ fontSize: 12 }}>{m.badge === 'Preferred Candidate' ? 'Low fan-out' : m.badge === 'Retire Variant' ? 'High fan-out' : 'Medium fan-out'}</td>
+                          <td><span style={{ padding: '2px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600, background: bc.bg, color: bc.color }}>{m.badge}</span></td>
+                        </tr>
+                        {isExpanded && hasCode && (
+                          <tr key={`${m.id}-code`} style={{ cursor: 'default' }}>
+                            <td colSpan={8} style={{ padding: 0, background: '#1e1e1e' }}>
+                              <div style={{ padding: '12px 16px', borderBottom: '1px solid #333', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#9cdcfe', fontWeight: 600 }}>{m.name}</span>
+                                <div style={{ display: 'flex', gap: 12, fontSize: 11 }}>
+                                  <span style={{ color: '#6a9955' }}>● {m.codeLines!.filter(l => l.matchType === 'identical').length} identical</span>
+                                  <span style={{ color: '#4ec9b0' }}>● {m.codeLines!.filter(l => l.matchType === 'similar').length} similar</span>
+                                  <span style={{ color: '#ce9178' }}>● {m.codeLines!.filter(l => l.matchType === 'different').length} different</span>
+                                  <span style={{ color: '#569cd6' }}>● {m.codeLines!.filter(l => l.matchType === 'unique').length} unique</span>
+                                </div>
+                              </div>
+                              <div style={{ overflowX: 'auto' }}>
+                                {m.codeLines!.map(line => {
+                                  const mtc = matchTypeColor(line.matchType);
+                                  return (
+                                    <div
+                                      key={line.lineNum}
+                                      style={{
+                                        display: 'flex',
+                                        alignItems: 'stretch',
+                                        fontFamily: "'Courier New', Consolas, monospace",
+                                        fontSize: 12,
+                                        lineHeight: '20px',
+                                        background: line.matchType === 'identical' ? 'transparent' :
+                                          line.matchType === 'similar' ? 'rgba(78, 201, 176, 0.1)' :
+                                          line.matchType === 'different' ? 'rgba(206, 145, 120, 0.15)' :
+                                          'rgba(86, 156, 214, 0.1)',
+                                        borderLeft: line.matchType === 'identical' ? '3px solid transparent' :
+                                          line.matchType === 'similar' ? '3px solid #4ec9b0' :
+                                          line.matchType === 'different' ? '3px solid #ce9178' :
+                                          '3px solid #569cd6',
+                                      }}
+                                    >
+                                      <span style={{ width: 44, textAlign: 'right', paddingRight: 12, color: '#858585', userSelect: 'none', flexShrink: 0 }}>{line.lineNum}</span>
+                                      <span style={{ color: '#d4d4d4', whiteSpace: 'pre', paddingRight: 16, flex: 1 }}>{line.text}</span>
+                                      {line.matchType !== 'identical' && (
+                                        <span style={{
+                                          fontSize: 10,
+                                          fontWeight: 600,
+                                          padding: '0 8px',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          color: line.matchType === 'similar' ? '#4ec9b0' :
+                                            line.matchType === 'different' ? '#ce9178' : '#569cd6',
+                                          flexShrink: 0,
+                                          textTransform: 'uppercase',
+                                          letterSpacing: 0.5,
+                                        }}>
+                                          {mtc.label}
+                                        </span>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </>
                     );
                   })}
                 </tbody>
               </table>
             </div>
           )}
+
+          {/* Side-by-Side Comparison */}
+          {cluster.members.filter(m => m.codeLines && m.codeLines.length > 0).length >= 2 && (
+            <div className="sf-card" style={{ padding: 20, marginTop: 16 }}>
+              <h4 className="sf-section-title">Side-by-Side Code Comparison</h4>
+              <p style={{ fontSize: 12, color: '#706e6b', marginBottom: 12 }}>Select two implementations to compare their code line by line.</p>
+              <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
+                <div style={{ flex: 1 }}>
+                  <label className="sf-label">Left Implementation</label>
+                  <select
+                    className="sf-select"
+                    style={{ width: '100%' }}
+                    value={compareLeft || ''}
+                    onChange={e => setCompareLeft(e.target.value || null)}
+                  >
+                    <option value="">Select implementation...</option>
+                    {cluster.members.filter(m => m.codeLines && m.codeLines.length > 0).map(m => (
+                      <option key={m.id} value={m.id}>{m.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label className="sf-label">Right Implementation</label>
+                  <select
+                    className="sf-select"
+                    style={{ width: '100%' }}
+                    value={compareRight || ''}
+                    onChange={e => setCompareRight(e.target.value || null)}
+                  >
+                    <option value="">Select implementation...</option>
+                    {cluster.members.filter(m => m.codeLines && m.codeLines.length > 0).map(m => (
+                      <option key={m.id} value={m.id}>{m.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              {compareLeft && compareRight && (() => {
+                const left = cluster.members.find(m => m.id === compareLeft);
+                const right = cluster.members.find(m => m.id === compareRight);
+                if (!left?.codeLines || !right?.codeLines) return null;
+                const maxLines = Math.max(left.codeLines.length, right.codeLines.length);
+                const leftBc = badgeColor(left.badge);
+                const rightBc = badgeColor(right.badge);
+                return (
+                  <div style={{ border: '1px solid #e5e5e5', borderRadius: 6, overflow: 'hidden' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+                      <div style={{ padding: '10px 16px', background: '#fafbfc', borderBottom: '1px solid #e5e5e5', borderRight: '1px solid #e5e5e5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 600, color: '#0176d3' }}>{left.name.split('(')[0]}()</span>
+                        <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 10, fontWeight: 600, background: leftBc.bg, color: leftBc.color }}>{left.badge}</span>
+                      </div>
+                      <div style={{ padding: '10px 16px', background: '#fafbfc', borderBottom: '1px solid #e5e5e5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 600, color: '#0176d3' }}>{right.name.split('(')[0]}()</span>
+                        <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 10, fontWeight: 600, background: rightBc.bg, color: rightBc.color }}>{right.badge}</span>
+                      </div>
+                    </div>
+                    {Array.from({ length: maxLines }).map((_, i) => {
+                      const ll = left.codeLines![i];
+                      const rl = right.codeLines![i];
+                      const linesMatch = ll && rl && ll.text === rl.text;
+                      const linesDiffer = ll && rl && ll.text !== rl.text;
+                      return (
+                        <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderBottom: '1px solid #f0f0f0' }}>
+                          <div style={{
+                            display: 'flex',
+                            fontFamily: "'Courier New', Consolas, monospace",
+                            fontSize: 11,
+                            lineHeight: '20px',
+                            borderRight: '1px solid #e5e5e5',
+                            background: !ll ? '#f8f8f8' :
+                              linesMatch ? 'transparent' :
+                              linesDiffer ? '#fef4e8' :
+                              ll.matchType === 'unique' ? '#e1f0ff' : 'transparent',
+                          }}>
+                            {ll && (
+                              <>
+                                <span style={{ width: 36, textAlign: 'right', paddingRight: 8, color: '#b0b0b0', flexShrink: 0, userSelect: 'none' }}>{ll.lineNum}</span>
+                                <span style={{ color: '#333', whiteSpace: 'pre', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ll.text}</span>
+                              </>
+                            )}
+                          </div>
+                          <div style={{
+                            display: 'flex',
+                            fontFamily: "'Courier New', Consolas, monospace",
+                            fontSize: 11,
+                            lineHeight: '20px',
+                            background: !rl ? '#f8f8f8' :
+                              linesMatch ? 'transparent' :
+                              linesDiffer ? '#fef4e8' :
+                              rl.matchType === 'unique' ? '#e1f0ff' : 'transparent',
+                          }}>
+                            {rl && (
+                              <>
+                                <span style={{ width: 36, textAlign: 'right', paddingRight: 8, color: '#b0b0b0', flexShrink: 0, userSelect: 'none' }}>{rl.lineNum}</span>
+                                <span style={{ color: '#333', whiteSpace: 'pre', overflow: 'hidden', textOverflow: 'ellipsis' }}>{rl.text}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
           <div className="sf-card" style={{ padding: 16, marginTop: 16, background: '#f0faf4', border: '1px solid #c8e6d5' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <Star size={16} color="#2e844a" fill="#2e844a" />

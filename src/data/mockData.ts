@@ -15,6 +15,12 @@ export interface ScanReport {
   scoreDelta: number | null;
 }
 
+export interface CodeLine {
+  lineNum: number;
+  text: string;
+  matchType: 'identical' | 'similar' | 'different' | 'unique';
+}
+
 export interface ClusterMember {
   id: string;
   name: string;
@@ -30,6 +36,7 @@ export interface ClusterMember {
   activePaths: number;
   lastObserved: string;
   runtimeConfidence: string;
+  codeLines?: CodeLine[];
 }
 
 export interface Cluster {
@@ -204,6 +211,29 @@ export const clusters: Cluster[] = [
         activePaths: 14,
         lastObserved: 'Mar 26, 2026 08:54 AM UTC',
         runtimeConfidence: 'High',
+        codeLines: [
+          { lineNum: 1, text: 'public Decimal calculateDiscount(Quote quote, PricingContext ctx) {', matchType: 'identical' },
+          { lineNum: 2, text: '    List<PricingRule__mdt> rules = PricingRuleRegistry.getActiveRules(ctx.region);', matchType: 'similar' },
+          { lineNum: 3, text: '    Decimal baseDiscount = 0;', matchType: 'identical' },
+          { lineNum: 4, text: '', matchType: 'identical' },
+          { lineNum: 5, text: '    for (PricingRule__mdt rule : rules) {', matchType: 'identical' },
+          { lineNum: 6, text: '        if (rule.IsPromotional__c && ctx.hasActivePromotion()) {', matchType: 'similar' },
+          { lineNum: 7, text: '            baseDiscount += evaluatePromotionalOverride(rule, quote);', matchType: 'similar' },
+          { lineNum: 8, text: '        } else {', matchType: 'identical' },
+          { lineNum: 9, text: '            baseDiscount += evaluateStandardThreshold(rule, quote.TotalAmount);', matchType: 'identical' },
+          { lineNum: 10, text: '        }', matchType: 'identical' },
+          { lineNum: 11, text: '    }', matchType: 'identical' },
+          { lineNum: 12, text: '', matchType: 'identical' },
+          { lineNum: 13, text: '    Decimal discountCeiling = DiscountPolicyService.getCeiling(ctx.region);', matchType: 'unique' },
+          { lineNum: 14, text: '    baseDiscount = Math.min(baseDiscount, discountCeiling);', matchType: 'identical' },
+          { lineNum: 15, text: '', matchType: 'identical' },
+          { lineNum: 16, text: '    if (ctx.requiresRegionalAdjustment()) {', matchType: 'identical' },
+          { lineNum: 17, text: '        baseDiscount = applyRegionalPricingAdjustment(baseDiscount, ctx);', matchType: 'identical' },
+          { lineNum: 18, text: '    }', matchType: 'identical' },
+          { lineNum: 19, text: '', matchType: 'identical' },
+          { lineNum: 20, text: '    return baseDiscount;', matchType: 'identical' },
+          { lineNum: 21, text: '}', matchType: 'identical' },
+        ],
       },
       {
         id: 'm-002',
@@ -220,6 +250,30 @@ export const clusters: Cluster[] = [
         activePaths: 5,
         lastObserved: 'Mar 25, 2026 11:22 PM UTC',
         runtimeConfidence: 'Medium',
+        codeLines: [
+          { lineNum: 1, text: 'public static Decimal applyDiscountRules(Quote__c quote, String region) {', matchType: 'identical' },
+          { lineNum: 2, text: '    List<Discount_Rule__c> rules = [SELECT Id, Threshold__c, Rate__c', matchType: 'similar' },
+          { lineNum: 3, text: '        FROM Discount_Rule__c WHERE Region__c = :region AND Active__c = true];', matchType: 'similar' },
+          { lineNum: 4, text: '    Decimal discount = 0;', matchType: 'identical' },
+          { lineNum: 5, text: '', matchType: 'identical' },
+          { lineNum: 6, text: '    for (Discount_Rule__c rule : rules) {', matchType: 'identical' },
+          { lineNum: 7, text: '        if (rule.Is_Promotional__c && hasPromotion(quote)) {', matchType: 'similar' },
+          { lineNum: 8, text: '            discount += getPromotionalRate(rule, quote);', matchType: 'similar' },
+          { lineNum: 9, text: '        } else {', matchType: 'identical' },
+          { lineNum: 10, text: '            discount += evaluateThreshold(rule, quote.Total_Amount__c);', matchType: 'identical' },
+          { lineNum: 11, text: '        }', matchType: 'identical' },
+          { lineNum: 12, text: '    }', matchType: 'identical' },
+          { lineNum: 13, text: '', matchType: 'identical' },
+          { lineNum: 14, text: '    // No centralized ceiling — hardcoded max', matchType: 'different' },
+          { lineNum: 15, text: '    if (discount > 0.35) { discount = 0.35; }', matchType: 'different' },
+          { lineNum: 16, text: '', matchType: 'identical' },
+          { lineNum: 17, text: '    if (RegionConfig.needsAdjustment(region)) {', matchType: 'identical' },
+          { lineNum: 18, text: '        discount = adjustForRegion(discount, region);', matchType: 'identical' },
+          { lineNum: 19, text: '    }', matchType: 'identical' },
+          { lineNum: 20, text: '', matchType: 'identical' },
+          { lineNum: 21, text: '    return discount;', matchType: 'identical' },
+          { lineNum: 22, text: '}', matchType: 'identical' },
+        ],
       },
       {
         id: 'm-003',
@@ -236,6 +290,26 @@ export const clusters: Cluster[] = [
         activePaths: 1,
         lastObserved: 'Mar 21, 2026 04:15 AM UTC',
         runtimeConfidence: 'Low',
+        codeLines: [
+          { lineNum: 1, text: 'public Decimal computePromoDiscount(Id quoteId) {', matchType: 'identical' },
+          { lineNum: 2, text: '    Quote__c quote = [SELECT Id, Total_Amount__c, Region__c', matchType: 'similar' },
+          { lineNum: 3, text: '        FROM Quote__c WHERE Id = :quoteId];', matchType: 'similar' },
+          { lineNum: 4, text: '    Decimal disc = 0;', matchType: 'identical' },
+          { lineNum: 5, text: '', matchType: 'identical' },
+          { lineNum: 6, text: '    // Legacy branching — checks promotions differently', matchType: 'different' },
+          { lineNum: 7, text: '    if (isPromotionPeriod()) {', matchType: 'different' },
+          { lineNum: 8, text: '        disc = getHardcodedPromoRate(quote.Region__c);', matchType: 'different' },
+          { lineNum: 9, text: '    } else {', matchType: 'identical' },
+          { lineNum: 10, text: '        List<Discount_Rule__c> rules = getDiscountRules(quote.Region__c);', matchType: 'similar' },
+          { lineNum: 11, text: '        for (Discount_Rule__c r : rules) {', matchType: 'identical' },
+          { lineNum: 12, text: '            disc += evaluateThreshold(r, quote.Total_Amount__c);', matchType: 'identical' },
+          { lineNum: 13, text: '        }', matchType: 'identical' },
+          { lineNum: 14, text: '    }', matchType: 'identical' },
+          { lineNum: 15, text: '', matchType: 'identical' },
+          { lineNum: 16, text: '    // No ceiling enforcement in legacy path', matchType: 'different' },
+          { lineNum: 17, text: '    return disc;', matchType: 'identical' },
+          { lineNum: 18, text: '}', matchType: 'identical' },
+        ],
       },
       {
         id: 'm-004',
