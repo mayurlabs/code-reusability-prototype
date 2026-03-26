@@ -1,0 +1,508 @@
+export interface ScanReport {
+  id: string;
+  name: string;
+  requestedBy: string;
+  requestedDate: string;
+  startTime: string;
+  endTime: string;
+  environment: string;
+  orgId: string;
+  scope: string[];
+  runtimeEnrichment: string;
+  reportVersion: string;
+  status: 'Complete' | 'In Progress' | 'Failed' | 'Draft';
+  score: number | null;
+  scoreDelta: number | null;
+}
+
+export interface ClusterMember {
+  id: string;
+  name: string;
+  surface: string;
+  owner: string;
+  lastModified: string;
+  usageState: string;
+  loc: number;
+  similarity: number;
+  badge: string;
+  invocations30d: number;
+  invocations90d: number;
+  activePaths: number;
+  lastObserved: string;
+  runtimeConfidence: string;
+}
+
+export interface Cluster {
+  id: string;
+  name: string;
+  surface: string;
+  type: 'Exact Duplicate' | 'Near Duplicate' | 'Pattern Family';
+  similarityRange: string;
+  memberCount: number;
+  runtimePriority: 'High' | 'Medium' | 'Low' | 'N/A';
+  recommendation: 'Standardize' | 'Review' | 'Consolidate' | 'Retire Variant' | 'Monitor';
+  owner: string;
+  lastUpdated: string;
+  preferredCandidate: string;
+  members: ClusterMember[];
+  sharedIntent: string;
+  commonBlocks: string[];
+  differences: string[];
+  whyItMatters: string[];
+  whereItAppears: string[];
+  estimatedReduction: string;
+  rationale: string[];
+  nextSteps: string[];
+}
+
+export const scanReports: ScanReport[] = [
+  {
+    id: 'rpt-001',
+    name: 'Mar 2026 Code Reuse Report - Northstar Retail Group',
+    requestedBy: 'Priya Raman',
+    requestedDate: 'Mar 26, 2026 09:12 AM UTC',
+    startTime: 'Mar 26, 2026 09:12 AM UTC',
+    endTime: 'Mar 26, 2026 09:19 AM UTC',
+    environment: 'Production',
+    orgId: '00D8A00000NRG42UAG',
+    scope: ['Apex', 'Triggers', 'LWC JS', 'SOQL Patterns'],
+    runtimeEnrichment: 'Partial / Supported',
+    reportVersion: 'v1.4',
+    status: 'Complete',
+    score: 78,
+    scoreDelta: 9,
+  },
+  {
+    id: 'rpt-002',
+    name: 'Mar 2026 Pre-Release Reuse Review',
+    requestedBy: 'Priya Raman',
+    requestedDate: 'Mar 12, 2026 08:30 AM UTC',
+    startTime: 'Mar 12, 2026 08:31 AM UTC',
+    endTime: 'Mar 12, 2026 08:44 AM UTC',
+    environment: 'Production',
+    orgId: '00D8A00000NRG42UAG',
+    scope: ['Apex', 'Triggers', 'LWC JS', 'SOQL Patterns'],
+    runtimeEnrichment: 'Partial / Supported',
+    reportVersion: 'v1.3',
+    status: 'Complete',
+    score: 69,
+    scoreDelta: 4,
+  },
+  {
+    id: 'rpt-003',
+    name: 'Feb 2026 Monthly Reuse Baseline',
+    requestedBy: 'Priya Raman',
+    requestedDate: 'Feb 20, 2026 10:00 AM UTC',
+    startTime: 'Feb 20, 2026 10:01 AM UTC',
+    endTime: 'Feb 20, 2026 10:12 AM UTC',
+    environment: 'Production',
+    orgId: '00D8A00000NRG42UAG',
+    scope: ['Apex', 'Triggers', 'LWC JS'],
+    runtimeEnrichment: 'Partial / Supported',
+    reportVersion: 'v1.2',
+    status: 'Complete',
+    score: 65,
+    scoreDelta: 3,
+  },
+  {
+    id: 'rpt-004',
+    name: 'Jan 2026 Initial Reuse Baseline',
+    requestedBy: 'Priya Raman',
+    requestedDate: 'Jan 15, 2026 09:45 AM UTC',
+    startTime: 'Jan 15, 2026 09:46 AM UTC',
+    endTime: 'Jan 15, 2026 09:58 AM UTC',
+    environment: 'Production',
+    orgId: '00D8A00000NRG42UAG',
+    scope: ['Apex', 'Triggers'],
+    runtimeEnrichment: 'Not Available',
+    reportVersion: 'v1.0',
+    status: 'Complete',
+    score: 62,
+    scoreDelta: null,
+  },
+  {
+    id: 'rpt-005',
+    name: 'Mar 2026 Ad Hoc Sandbox Review',
+    requestedBy: 'Daniel Brooks',
+    requestedDate: 'Mar 18, 2026 02:15 PM UTC',
+    startTime: 'Mar 18, 2026 02:16 PM UTC',
+    endTime: 'Mar 18, 2026 02:19 PM UTC',
+    environment: 'Full Copy Sandbox',
+    orgId: '00D8A00000NRG42UAG',
+    scope: ['Apex', 'Triggers', 'LWC JS'],
+    runtimeEnrichment: 'Not Available',
+    reportVersion: 'v1.3',
+    status: 'Failed',
+    score: null,
+    scoreDelta: null,
+  },
+];
+
+export const clusters: Cluster[] = [
+  {
+    id: 'cl-001',
+    name: 'Pricing Rules Calculator Variants',
+    surface: 'Apex',
+    type: 'Near Duplicate',
+    similarityRange: '87–94%',
+    memberCount: 5,
+    runtimePriority: 'High',
+    recommendation: 'Standardize',
+    owner: 'Revenue Cloud Platform',
+    lastUpdated: 'Mar 24, 2026',
+    preferredCandidate: 'PricingRulesEngineV2.calculateDiscount()',
+    sharedIntent: 'These implementations all evaluate discount eligibility, promotional overrides, and pricing thresholds before final quote or opportunity pricing is committed.',
+    commonBlocks: [
+      'Threshold evaluation logic',
+      'Promotional override handling',
+      'Discount ceiling enforcement',
+      'Region-specific pricing adjustments',
+    ],
+    differences: [
+      'LegacyPriceCalcService uses outdated promotional override branching',
+      'QuotePricingHelper duplicates threshold evaluation but lacks centralized exception handling',
+      'PricingRulesEngineV2 uses shared rule registry and cleaner dependency injection',
+    ],
+    whyItMatters: [
+      'Pricing logic affects quote generation, discount approvals, and opportunity conversion',
+      'Duplicate variants increase maintenance cost and create inconsistent rule enforcement',
+      'Consolidating around one preferred implementation reduces fragmentation and future tech debt',
+    ],
+    whereItAppears: [
+      'Quote pricing services',
+      'Opportunity deal desk overrides',
+      'Discount approval threshold evaluation',
+      'Legacy promotional pricing service',
+    ],
+    estimatedReduction: '5 similar implementations → 1 standard. ~420 duplicate logic lines.',
+    rationale: [
+      'Highest production-backed activity across supported pricing flows',
+      'Lowest fragmentation across downstream pricing services',
+      'Strongest shared dependency alignment with current pricing policy registry',
+      'Lower-value variants are less active, older, and more isolated',
+      'Consolidating on this implementation reduces duplicate maintenance burden while preserving current business-critical behavior',
+    ],
+    nextSteps: [
+      'Designate PricingRulesEngineV2.calculateDiscount() as preferred reusable pricing standard',
+      'Consolidate QuotePricingHelper.applyDiscountRules() into shared standard path',
+      'Retire LegacyPriceCalcService.computePromoDiscount() after dependency validation',
+      'Re-run Code Reuse scan after rollout to measure score improvement',
+    ],
+    members: [
+      {
+        id: 'm-001',
+        name: 'PricingRulesEngineV2.calculateDiscount()',
+        surface: 'Apex',
+        owner: 'Revenue Cloud Platform',
+        lastModified: 'Mar 18, 2026',
+        usageState: 'Active',
+        loc: 148,
+        similarity: 100,
+        badge: 'Preferred Candidate',
+        invocations30d: 184320,
+        invocations90d: 512804,
+        activePaths: 14,
+        lastObserved: 'Mar 26, 2026 08:54 AM UTC',
+        runtimeConfidence: 'High',
+      },
+      {
+        id: 'm-002',
+        name: 'QuotePricingHelper.applyDiscountRules()',
+        surface: 'Apex',
+        owner: 'Sales Operations Engineering',
+        lastModified: 'Feb 27, 2026',
+        usageState: 'Active',
+        loc: 132,
+        similarity: 93,
+        badge: 'Consolidate',
+        invocations30d: 48112,
+        invocations90d: 136300,
+        activePaths: 5,
+        lastObserved: 'Mar 25, 2026 11:22 PM UTC',
+        runtimeConfidence: 'Medium',
+      },
+      {
+        id: 'm-003',
+        name: 'LegacyPriceCalcService.computePromoDiscount()',
+        surface: 'Apex',
+        owner: 'Revenue Cloud Platform',
+        lastModified: 'Nov 14, 2025',
+        usageState: 'Low Value',
+        loc: 159,
+        similarity: 89,
+        badge: 'Retire Variant',
+        invocations30d: 1904,
+        invocations90d: 5802,
+        activePaths: 1,
+        lastObserved: 'Mar 21, 2026 04:15 AM UTC',
+        runtimeConfidence: 'Low',
+      },
+      {
+        id: 'm-004',
+        name: 'DiscountRuleProcessor.evaluateThresholds()',
+        surface: 'Apex',
+        owner: 'Core CRM Services',
+        lastModified: 'Jan 29, 2026',
+        usageState: 'Active',
+        loc: 141,
+        similarity: 91,
+        badge: 'Review',
+        invocations30d: 18602,
+        invocations90d: 66441,
+        activePaths: 4,
+        lastObserved: 'Mar 26, 2026 06:30 AM UTC',
+        runtimeConfidence: 'Medium',
+      },
+      {
+        id: 'm-005',
+        name: 'OpportunityPricingBranchHandler.applyDealDeskOverride()',
+        surface: 'Trigger-linked Apex',
+        owner: 'Sales Operations Engineering',
+        lastModified: 'Mar 05, 2026',
+        usageState: 'Medium Activity',
+        loc: 127,
+        similarity: 87,
+        badge: 'Review',
+        invocations30d: 9214,
+        invocations90d: 28903,
+        activePaths: 3,
+        lastObserved: 'Mar 25, 2026 09:45 PM UTC',
+        runtimeConfidence: 'Medium',
+      },
+    ],
+  },
+  {
+    id: 'cl-002',
+    name: 'Address Validation Service Family',
+    surface: 'Apex + LWC',
+    type: 'Pattern Family',
+    similarityRange: '81–92%',
+    memberCount: 4,
+    runtimePriority: 'Medium',
+    recommendation: 'Standardize',
+    owner: 'Core CRM Services',
+    lastUpdated: 'Mar 21, 2026',
+    preferredCandidate: 'AddressValidationOrchestrator.validate()',
+    sharedIntent: 'Address formatting, normalization, and validation logic used across account, contact, and lead creation flows.',
+    commonBlocks: ['Address parsing', 'State/province normalization', 'Postal code validation', 'Country-code mapping'],
+    differences: ['LWC variant uses client-side regex fallback', 'Apex service uses external geocoding callout'],
+    whyItMatters: ['Address quality impacts data integrity, deduplication, and billing accuracy'],
+    whereItAppears: ['Account creation', 'Lead conversion', 'Contact imports', 'LWC address input components'],
+    estimatedReduction: '4 implementations → 1 standard. ~280 duplicate lines.',
+    rationale: ['Strongest validation coverage', 'Used across most critical data entry flows'],
+    nextSteps: ['Standardize on AddressValidationOrchestrator', 'Migrate LWC variant to shared service callout'],
+    members: [],
+  },
+  {
+    id: 'cl-003',
+    name: 'Legacy Lead Scoring Utilities',
+    surface: 'Apex',
+    type: 'Exact Duplicate',
+    similarityRange: '98%',
+    memberCount: 3,
+    runtimePriority: 'Low',
+    recommendation: 'Retire Variant',
+    owner: 'Sales Operations Engineering',
+    lastUpdated: 'Mar 09, 2026',
+    preferredCandidate: 'LeadScoringServiceV3.score()',
+    sharedIntent: 'Legacy lead scoring implementations from prior generations of the scoring engine.',
+    commonBlocks: ['Scoring model evaluation', 'Field weighting', 'Threshold comparison'],
+    differences: ['V1 uses hardcoded thresholds', 'V2 uses configurable custom settings', 'V3 uses custom metadata types'],
+    whyItMatters: ['Maintaining 3 scoring implementations creates confusion and inconsistent lead routing'],
+    whereItAppears: ['Lead triggers', 'Scheduled batch jobs', 'Marketing integration endpoints'],
+    estimatedReduction: '3 implementations → 1. ~340 duplicate lines.',
+    rationale: ['V3 is the only actively maintained version'],
+    nextSteps: ['Retire V1 and V2 after confirming no direct references'],
+    members: [],
+  },
+  {
+    id: 'cl-004',
+    name: 'Quote Sync REST Wrapper Patterns',
+    surface: 'Apex',
+    type: 'Near Duplicate',
+    similarityRange: '84–89%',
+    memberCount: 5,
+    runtimePriority: 'High',
+    recommendation: 'Review',
+    owner: 'Partner Integrations',
+    lastUpdated: 'Mar 22, 2026',
+    preferredCandidate: 'QuoteSyncAdapter.syncToERP()',
+    sharedIntent: 'REST wrapper patterns for synchronizing quote data to external ERP and billing systems.',
+    commonBlocks: ['HTTP callout construction', 'Authentication header injection', 'Retry logic', 'Error response parsing'],
+    differences: ['Different endpoint configurations', 'Inconsistent retry strategies', 'Varying timeout values'],
+    whyItMatters: ['Integration wrappers are the most commonly duplicated pattern in enterprise Salesforce orgs'],
+    whereItAppears: ['CPQ integrations', 'Billing sync services', 'External quote approval flows', 'Partner portal connectors'],
+    estimatedReduction: '5 wrappers → 1 shared adapter. ~510 duplicate lines.',
+    rationale: ['QuoteSyncAdapter has the most robust error handling and retry logic'],
+    nextSteps: ['Unify wrapper patterns', 'Create shared integration utility class'],
+    members: [],
+  },
+  {
+    id: 'cl-005',
+    name: 'Renewal Date Normalization Helpers',
+    surface: 'Apex',
+    type: 'Exact Duplicate',
+    similarityRange: '96%',
+    memberCount: 4,
+    runtimePriority: 'Medium',
+    recommendation: 'Consolidate',
+    owner: 'Customer Lifecycle Systems',
+    lastUpdated: 'Mar 10, 2026',
+    preferredCandidate: 'RenewalDateService.normalize()',
+    sharedIntent: 'Date normalization and business-day adjustment for renewal processing.',
+    commonBlocks: ['Business day calculation', 'Holiday calendar lookup', 'Grace period evaluation'],
+    differences: ['Minor variations in grace period logic'],
+    whyItMatters: ['Inconsistent renewal dates cause billing disputes'],
+    whereItAppears: ['Subscription management', 'Contract renewal triggers', 'Renewal notification batch jobs'],
+    estimatedReduction: '4 helpers → 1 shared service. ~190 duplicate lines.',
+    rationale: ['Most comprehensive business calendar integration'],
+    nextSteps: ['Merge into RenewalDateService', 'Remove redundant helpers'],
+    members: [],
+  },
+  {
+    id: 'cl-006',
+    name: 'Opportunity Territory Assignment Logic',
+    surface: 'Apex',
+    type: 'Pattern Family',
+    similarityRange: '76–88%',
+    memberCount: 6,
+    runtimePriority: 'Medium',
+    recommendation: 'Review',
+    owner: 'Core CRM Services',
+    lastUpdated: 'Mar 18, 2026',
+    preferredCandidate: 'TerritoryAssignmentEvaluator.assign()',
+    sharedIntent: 'Territory-based opportunity routing and assignment logic.',
+    commonBlocks: ['Region lookup', 'Territory rule evaluation', 'Ownership assignment'],
+    differences: ['Different region hierarchies', 'Varying rule evaluation order'],
+    whyItMatters: ['Territory misassignment impacts sales compensation and forecasting'],
+    whereItAppears: ['Opportunity triggers', 'Territory management batch', 'Manual reassignment tools'],
+    estimatedReduction: '6 variants → 2 standard paths. ~380 duplicate lines.',
+    rationale: ['Most complete territory hierarchy support'],
+    nextSteps: ['Review with Sales Operations', 'Define standard territory assignment service'],
+    members: [],
+  },
+  {
+    id: 'cl-007',
+    name: 'Invoice Tax Computation Methods',
+    surface: 'Apex',
+    type: 'Near Duplicate',
+    similarityRange: '83–91%',
+    memberCount: 4,
+    runtimePriority: 'Low',
+    recommendation: 'Monitor',
+    owner: 'Revenue Cloud Platform',
+    lastUpdated: 'Mar 08, 2026',
+    preferredCandidate: 'InvoiceTaxComputationService.calculate()',
+    sharedIntent: 'Tax rate lookup and computation for invoice line items.',
+    commonBlocks: ['Tax rate lookup', 'Jurisdiction mapping', 'Exemption handling'],
+    differences: ['Legacy variants use hardcoded rates', 'Current version uses external tax engine callout'],
+    whyItMatters: ['Tax computation errors create compliance risk'],
+    whereItAppears: ['Invoice generation', 'Credit memo processing', 'Revenue recognition'],
+    estimatedReduction: '4 methods → 1 standard. ~220 duplicate lines.',
+    rationale: ['External tax engine integration is more accurate'],
+    nextSteps: ['Monitor usage patterns before consolidation'],
+    members: [],
+  },
+  {
+    id: 'cl-008',
+    name: 'Case Escalation Trigger Branches',
+    surface: 'Trigger',
+    type: 'Pattern Family',
+    similarityRange: '74–86%',
+    memberCount: 5,
+    runtimePriority: 'Low',
+    recommendation: 'Review',
+    owner: 'Core CRM Services',
+    lastUpdated: 'Mar 14, 2026',
+    preferredCandidate: 'CaseEscalationTriggerHandler.handleEscalation()',
+    sharedIntent: 'Trigger-based case escalation and priority routing logic.',
+    commonBlocks: ['Priority evaluation', 'SLA threshold check', 'Escalation path routing'],
+    differences: ['Different SLA models per business unit', 'Varying notification strategies'],
+    whyItMatters: ['Inconsistent escalation behavior impacts customer satisfaction'],
+    whereItAppears: ['Case triggers', 'Scheduled escalation jobs', 'Entitlement process hooks'],
+    estimatedReduction: '5 branches → 1 configurable handler. ~290 duplicate lines.',
+    rationale: ['Most configurable escalation path support'],
+    nextSteps: ['Define unified escalation handler with configurable rules'],
+    members: [],
+  },
+  {
+    id: 'cl-009',
+    name: 'Sales Forecast Rollup Utilities',
+    surface: 'Apex',
+    type: 'Exact Duplicate',
+    similarityRange: '97%',
+    memberCount: 3,
+    runtimePriority: 'Medium',
+    recommendation: 'Consolidate',
+    owner: 'Sales Operations Engineering',
+    lastUpdated: 'Mar 11, 2026',
+    preferredCandidate: 'ForecastRollupService.aggregate()',
+    sharedIntent: 'Forecast aggregation and rollup calculation across opportunity pipelines.',
+    commonBlocks: ['Pipeline aggregation', 'Category grouping', 'Period-based rollup'],
+    differences: ['Minor variations in aggregation period boundaries'],
+    whyItMatters: ['Incorrect rollups impact sales forecasting accuracy'],
+    whereItAppears: ['Forecast batch jobs', 'Dashboard data services', 'Manager rollup views'],
+    estimatedReduction: '3 utilities → 1 shared service. ~180 duplicate lines.',
+    rationale: ['Cleanest aggregation logic with proper period boundary handling'],
+    nextSteps: ['Merge duplicates into ForecastRollupService'],
+    members: [],
+  },
+  {
+    id: 'cl-010',
+    name: 'Discount Approval Threshold Evaluators',
+    surface: 'Apex',
+    type: 'Near Duplicate',
+    similarityRange: '88–93%',
+    memberCount: 4,
+    runtimePriority: 'High',
+    recommendation: 'Standardize',
+    owner: 'Revenue Cloud Platform',
+    lastUpdated: 'Mar 23, 2026',
+    preferredCandidate: 'DiscountApprovalPolicyService.evaluate()',
+    sharedIntent: 'Discount threshold evaluation and approval routing for deal desk workflows.',
+    commonBlocks: ['Threshold evaluation', 'Approval matrix lookup', 'Delegation rules'],
+    differences: ['Different approval matrix sources', 'Varying delegation depth'],
+    whyItMatters: ['Inconsistent approval thresholds create revenue leakage risk'],
+    whereItAppears: ['CPQ discount approval flows', 'Deal desk automation', 'Quote approval processes'],
+    estimatedReduction: '4 evaluators → 1 policy service. ~310 duplicate lines.',
+    rationale: ['Most complete approval matrix with delegation support'],
+    nextSteps: ['Standardize on DiscountApprovalPolicyService', 'Retire fragmented evaluators'],
+    members: [],
+  },
+];
+
+export const scoreHistory = [
+  { month: 'Jan', score: 62 },
+  { month: 'Feb', score: 65 },
+  { month: 'Mar 12', score: 69 },
+  { month: 'Mar 26', score: 78 },
+];
+
+export const surfaceDistribution = [
+  { name: 'Apex', value: 34 },
+  { name: 'Triggers', value: 8 },
+  { name: 'LWC JS/TS', value: 6 },
+  { name: 'SOQL Patterns', value: 5 },
+];
+
+export const clusterTypeDistribution = [
+  { name: 'Exact Duplicate', value: 8, color: '#ea001e' },
+  { name: 'Near Duplicate', value: 14, color: '#fe9339' },
+  { name: 'Pattern Family', value: 11, color: '#0176d3' },
+];
+
+export const apexGuruInsights = [
+  { id: 'ag-1', title: 'OpportunityTriggerHandler.beforeUpdate() CPU Hotspot', severity: 'Critical', impact: 'High', team: 'Core CRM Services', description: 'CPU time exceeds governor limit threshold during bulk opportunity updates. Consider refactoring SOQL queries inside loop.', lastDetected: 'Mar 25, 2026' },
+  { id: 'ag-2', title: 'AccountMergeService.merge() Heap Allocation', severity: 'Warning', impact: 'Medium', team: 'Core CRM Services', description: 'Heap size approaching limit during large account merge operations. Recommend batch processing approach.', lastDetected: 'Mar 24, 2026' },
+  { id: 'ag-3', title: 'QuotePricingHelper.applyDiscountRules() SOQL in Loop', severity: 'Warning', impact: 'Medium', team: 'Sales Operations Engineering', description: 'SOQL query executed inside for-loop during discount calculation. Move query outside loop for bulk safety.', lastDetected: 'Mar 23, 2026' },
+  { id: 'ag-4', title: 'CaseEscalationBatch.execute() DML Optimization', severity: 'Info', impact: 'Low', team: 'Core CRM Services', description: 'DML operations can be consolidated to reduce transaction overhead in batch processing.', lastDetected: 'Mar 22, 2026' },
+];
+
+export const modernisationCandidates = [
+  { id: 'mc-1', title: 'Replace legacy Visualforce pricing admin helper with shared service-backed experience', category: 'Visualforce → LWC', impact: 'High', team: 'Revenue Cloud Platform', status: 'Recommended' },
+  { id: 'mc-2', title: 'Consolidate Aura discount utilities into LWC shared pricing module', category: 'Aura → LWC', impact: 'Medium', team: 'Revenue Cloud Platform', status: 'Recommended' },
+  { id: 'mc-3', title: 'Modernize RenewalProcessorUtil to event-driven orchestration pattern', category: 'Refactor', impact: 'High', team: 'Customer Lifecycle Systems', status: 'Under Review' },
+  { id: 'mc-4', title: 'Replace custom REST retry wrapper with standard integration utility layer', category: 'Refactor', impact: 'Medium', team: 'Partner Integrations', status: 'Recommended' },
+  { id: 'mc-5', title: 'Migrate batch-based lead scoring to platform event-driven architecture', category: 'Architecture', impact: 'High', team: 'Sales Operations Engineering', status: 'Planned' },
+  { id: 'mc-6', title: 'Convert synchronous callout patterns to Queueable-based async processing', category: 'Performance', impact: 'Medium', team: 'Partner Integrations', status: 'Under Review' },
+];
